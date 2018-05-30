@@ -30,20 +30,14 @@ def _validate_with_synthetic_dataset(subjective_model_classes, dataset_filepath,
 
         dataset_reader = SyntheticRawDatasetReader(dataset, input_dict=synthetic_result)
 
-        subjective_models = map(
-            lambda subjective_model_class: subjective_model_class(dataset_reader),
-            subjective_model_classes
-        )
+        subjective_models = [subjective_model_class(dataset_reader) for subjective_model_class in subjective_model_classes]
 
-        results = map(
-            lambda subjective_model: subjective_model.run_modeling(),
-            subjective_models
-        )
+        results = [subjective_model.run_modeling() for subjective_model in subjective_models]
 
         # ===== plot scatter =====
         fig, axs = plt.subplots(figsize=(9, 9), nrows=2, ncols=2)
         for subjective_model_class, result, idx in zip(
-                subjective_model_classes, results, range(len(results))):
+                subjective_model_classes, results, list(range(len(results)))):
 
             model_name = subjective_model_class.TYPE
 
@@ -138,7 +132,7 @@ def run_datasize_growth(dataset_filepaths):
         for subject_num in subject_nums:
             input = [subject_num, dataset, seed]
             inputs.append(input)
-        outputs = map(lambda input: run_one_num_subject(*input), inputs)
+        outputs = [run_one_num_subject(*input) for input in inputs]
 
         result0 = model_class(RawDatasetReader(dataset)).run_modeling(normalize_final=False)
 
@@ -178,10 +172,10 @@ def run_datasize_growth(dataset_filepaths):
         ]
 
         seedss = [
-            range(10),
-            range(10),
-            range(10),
-            range(1),
+            list(range(10)),
+            list(range(10)),
+            list(range(10)),
+            list(range(1)),
         ]
 
         linestyles = ['--', '-.', ':', '-']
@@ -194,7 +188,7 @@ def run_datasize_growth(dataset_filepaths):
 
         i = 0
         for model_class, seeds in zip(model_classes, seedss):
-            print 'class {}...'.format(model_class.__name__)
+            print('class {}...'.format(model_class.__name__))
             for seed in seeds:
                 datasizes, perfs = _run_subject_nums(dataset, subject_nums, model_class, seed)
                 datasizesss[i].append(datasizes)
@@ -236,7 +230,7 @@ def run_subject_corruption_growth(dataset_filepaths):
         for subject_num in subject_nums:
             input = [subject_num, dataset, seed]
             inputs.append(input)
-        outputs = map(lambda input: run_one_num_subject(*input), inputs)
+        outputs = [run_one_num_subject(*input) for input in inputs]
 
         result0 = model_class(RawDatasetReader(dataset)).run_modeling(normalize_final=False)
 
@@ -278,10 +272,10 @@ def run_subject_corruption_growth(dataset_filepaths):
         ]
 
         seedss = [
-            range(10),
-            range(10),
-            range(10),
-            range(1),
+            list(range(10)),
+            list(range(10)),
+            list(range(10)),
+            list(range(1)),
         ]
 
         linestyles = ['--', '-.', ':', '-']
@@ -294,7 +288,7 @@ def run_subject_corruption_growth(dataset_filepaths):
 
         i = 0
         for model_class, seeds in zip(model_classes, seedss):
-            print 'class {}...'.format(model_class.__name__)
+            print('class {}...'.format(model_class.__name__))
             for seed in seeds:
                 datasizes, perfs = _run_corrupt_nums(
                     dataset, subject_nums, model_class, seed)
@@ -332,7 +326,7 @@ def run_missing_growth(dataset_filepaths):
             try:
                 result = subjective_model.run_modeling(normalize_final=False)
             except ValueError as e:
-                print 'Warning: {}, return result None'.format(e)
+                print('Warning: {}, return result None'.format(e))
                 result = None
             return dataset_reader, result
 
@@ -340,7 +334,7 @@ def run_missing_growth(dataset_filepaths):
         for missing_prob in missing_probs:
             input = [missing_prob, dataset, seed]
             inputs.append(input)
-        outputs = map(lambda input: run_one_missing_prob(*input), inputs)
+        outputs = [run_one_missing_prob(*input) for input in inputs]
 
         result0 = model_class(RawDatasetReader(dataset)).run_modeling(normalize_final=False)
 
@@ -384,10 +378,10 @@ def run_missing_growth(dataset_filepaths):
         ]
 
         seedss = [
-            range(10),
-            range(10),
-            range(10),
-            range(1),
+            list(range(10)),
+            list(range(10)),
+            list(range(10)),
+            list(range(1)),
         ]
 
         linestyles = ['--', '-.', ':', '-']
@@ -400,7 +394,7 @@ def run_missing_growth(dataset_filepaths):
 
         i = 0
         for model_class, seeds in zip(model_classes, seedss):
-            print 'class {}...'.format(model_class.__name__)
+            print('class {}...'.format(model_class.__name__))
             for seed in seeds:
                 datasizes, perfs = _run_missing_probs(dataset, missing_probs, model_class, seed)
                 datasizesss[i].append(datasizes)
@@ -438,7 +432,7 @@ def run_random_corruption_growth(dataset_filepaths):
             try:
                 result = subjective_model.run_modeling(normalize_final=False)
             except ValueError as e:
-                print 'Warning: {}, return result None'.format(e)
+                print('Warning: {}, return result None'.format(e))
                 result = None
             return dataset_reader, result
 
@@ -446,7 +440,7 @@ def run_random_corruption_growth(dataset_filepaths):
         for corrupt_prob in corrupt_probs:
             input = [corrupt_prob, dataset, seed]
             inputs.append(input)
-        outputs = map(lambda input: run_one_corrput_prob(*input), inputs)
+        outputs = [run_one_corrput_prob(*input) for input in inputs]
 
         result0 = model_class(RawDatasetReader(dataset)).run_modeling(normalize_final=False)
 
@@ -490,10 +484,10 @@ def run_random_corruption_growth(dataset_filepaths):
         ]
 
         seedss = [
-            range(10),
-            range(10),
-            range(10),
-            range(1),
+            list(range(10)),
+            list(range(10)),
+            list(range(10)),
+            list(range(1)),
         ]
 
         linestyles = ['--', '-.', ':', '-']
@@ -506,7 +500,7 @@ def run_random_corruption_growth(dataset_filepaths):
 
         i = 0
         for model_class, seeds in zip(model_classes, seedss):
-            print 'class {}...'.format(model_class.__name__)
+            print('class {}...'.format(model_class.__name__))
             for seed in seeds:
                 datasizes, perfs = _run_corrupt_probs(dataset, corrupt_probs, model_class, seed)
                 datasizesss[i].append(datasizes)
@@ -550,7 +544,7 @@ def run_subject_partial_corruption_growth(dataset_filepaths):
         for subject_num in subject_nums:
             input = [subject_num, dataset, seed]
             inputs.append(input)
-        outputs = map(lambda input: run_one_num_subject(*input), inputs)
+        outputs = [run_one_num_subject(*input) for input in inputs]
 
         result0 = model_class(RawDatasetReader(dataset)).run_modeling(normalize_final=False)
 
@@ -592,10 +586,10 @@ def run_subject_partial_corruption_growth(dataset_filepaths):
         ]
 
         seedss = [
-            range(10),
-            range(10),
-            range(10),
-            range(1),
+            list(range(10)),
+            list(range(10)),
+            list(range(10)),
+            list(range(1)),
         ]
 
         linestyles = ['--', '-.', ':', '-']
@@ -608,7 +602,7 @@ def run_subject_partial_corruption_growth(dataset_filepaths):
 
         i = 0
         for model_class, seeds in zip(model_classes, seedss):
-            print 'class {}...'.format(model_class.__name__)
+            print('class {}...'.format(model_class.__name__))
             for seed in seeds:
                 datasizes, perfs = _run_partial_corrupt_nums(
                     dataset, subject_nums, model_class, seed)
@@ -688,4 +682,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print 'Done.'
+    print('Done.')

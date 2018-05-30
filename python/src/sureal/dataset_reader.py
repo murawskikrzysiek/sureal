@@ -18,7 +18,7 @@ class DatasetReader(object):
         cids = []
         for ref_video in self.dataset.ref_videos:
             cids.append(ref_video['content_id'])
-        expected_cids = range(np.max(cids) + 1)
+        expected_cids = list(range(np.max(cids) + 1))
         for cid in cids:
             assert cid in expected_cids, \
                 'reference video content_ids must be in [0, {}), but is {}'.\
@@ -40,19 +40,19 @@ class DatasetReader(object):
 
     @property
     def max_content_id_of_ref_videos(self):
-        return max(map(lambda ref_video: ref_video['content_id'], self.dataset.ref_videos))
+        return max([ref_video['content_id'] for ref_video in self.dataset.ref_videos])
 
     @property
     def content_ids(self):
-        return list(set(map(lambda ref_video: ref_video['content_id'], self.dataset.ref_videos)))
+        return list(set([ref_video['content_id'] for ref_video in self.dataset.ref_videos]))
 
     @property
     def asset_ids(self):
-        return list(set(map(lambda dis_video: dis_video['asset_id'], self.dataset.dis_videos)))
+        return list(set([dis_video['asset_id'] for dis_video in self.dataset.dis_videos]))
 
     @property
     def content_id_of_dis_videos(self):
-        return map(lambda dis_video: dis_video['content_id'], self.dataset.dis_videos)
+        return [dis_video['content_id'] for dis_video in self.dataset.dis_videos]
 
     @property
     def _contentid_to_refvideo_map(self):
@@ -64,10 +64,7 @@ class DatasetReader(object):
     @property
     def disvideo_is_refvideo(self):
         d = self._contentid_to_refvideo_map
-        return map(
-            lambda dis_video: d[dis_video['content_id']]['path'] == dis_video['path'],
-            self.dataset.dis_videos
-        )
+        return [d[dis_video['content_id']]['path'] == dis_video['path'] for dis_video in self.dataset.dis_videos]
 
     @property
     def ref_score(self):
@@ -82,7 +79,7 @@ class DatasetReader(object):
         assert (hasattr(dataset, 'dis_videos'))
         # write out
         with open(output_dataset_filepath, 'wt') as output_file:
-            for key in dataset.__dict__.keys():
+            for key in list(dataset.__dict__.keys()):
                 if key != 'ref_videos' and key != 'dis_videos' \
                         and key != 'subjects' and not key.startswith('__'):
                     output_file.write('{} = '.format(key) + repr(
@@ -93,7 +90,7 @@ class DatasetReader(object):
             output_file.write('\n')
             output_file.write('dis_videos = ' + pprint.pformat(
                 dataset.dis_videos) + '\n')
-            if 'subjects' in dataset.__dict__.keys():
+            if 'subjects' in list(dataset.__dict__.keys()):
                 output_file.write('\n')
                 output_file.write('subjects = ' + pprint.pformat(
                     dataset.subjects) + '\n')
@@ -148,7 +145,7 @@ class RawDatasetReader(DatasetReader):
 
         list_observers = []
         for dis_video in self.dataset.dis_videos:
-            list_observers += dis_video['os'].keys()
+            list_observers += list(dis_video['os'].keys())
 
         return get_unique_sorted_list(list_observers)
 
@@ -179,7 +176,7 @@ class RawDatasetReader(DatasetReader):
         newone = empty_object()
 
         # systematically copy fields, e.g. dataset_name, yuv_fmt, width, height, ...
-        for key in self.dataset.__dict__.keys():
+        for key in list(self.dataset.__dict__.keys()):
             if not key.startswith('__'): # filter out those e.g. __builtin__ ...
                 setattr(newone, key, getattr(self.dataset, key))
 
@@ -218,10 +215,10 @@ class RawDatasetReader(DatasetReader):
                 dis_video['groundtruth_std'] = score_std
 
         if 'aggregate_content_ids' in kwargs and kwargs['aggregate_content_ids'] is not None:
-            dis_videos = filter(lambda dis_video: dis_video['content_id'] in kwargs['aggregate_content_ids'], dis_videos)
+            dis_videos = [dis_video for dis_video in dis_videos if dis_video['content_id'] in kwargs['aggregate_content_ids']]
 
         if 'aggregate_asset_ids' in kwargs and kwargs['aggregate_asset_ids'] is not None:
-            dis_videos = filter(lambda dis_video: dis_video['asset_id'] in kwargs['aggregate_asset_ids'], dis_videos)
+            dis_videos = [dis_video for dis_video in dis_videos if dis_video['asset_id'] in kwargs['aggregate_asset_ids']]
 
         newone.dis_videos = dis_videos
 
@@ -238,7 +235,7 @@ class RawDatasetReader(DatasetReader):
         newone = empty_object()
 
         # systematically copy fields, e.g. dataset_name, yuv_fmt, width, height, ...
-        for key in self.dataset.__dict__.keys():
+        for key in list(self.dataset.__dict__.keys()):
             if not key.startswith('__'): # filter out those e.g. __builtin__ ...
                 setattr(newone, key, getattr(self.dataset, key))
 
@@ -271,7 +268,7 @@ class RawDatasetReader(DatasetReader):
             # new style: opinion is specified as a dict: user -> score. In this
             # case, quality_score may contain nan. In this case: filter them out
             if isinstance(dis_video['os'], dict):
-                quality_score = filter(lambda x: not math.isnan(x), quality_score)
+                quality_score = [x for x in quality_score if not math.isnan(x)]
 
             assert len(dis_video['os']) == len(quality_score)
 
@@ -367,8 +364,8 @@ class SyntheticRawDatasetReader(MockedRawDatasetReader):
 
         mu_c = np.array(self.input_dict['content_bias'])
         delta_c = np.array(self.input_dict['content_ambiguity'])
-        mu_c_e = np.array(map(lambda i: mu_c[i], self.content_id_of_dis_videos))
-        delta_c_e = np.array(map(lambda i: delta_c[i], self.content_id_of_dis_videos))
+        mu_c_e = np.array([mu_c[i] for i in self.content_id_of_dis_videos])
+        delta_c_e = np.array([delta_c[i] for i in self.content_id_of_dis_videos])
         y_es = np.tile(mu_c_e, (S, 1)).T + np.random.normal(0, 1, [E, S]) * np.tile(delta_c_e, (S, 1)).T
 
         z_es = q_es + x_es + y_es
@@ -407,7 +404,7 @@ class SelectSubjectRawDatasetReader(MockedRawDatasetReader):
         assert len(list(set(selected_subjects))) == len(selected_subjects)
 
         # assert in 0, 1, 2...., num_observer -1
-        observer_idxs = range(super(SelectSubjectRawDatasetReader, self).num_observers)
+        observer_idxs = list(range(super(SelectSubjectRawDatasetReader, self).num_observers))
         for subject in selected_subjects:
             assert subject in observer_idxs
 
@@ -443,7 +440,7 @@ class CorruptSubjectRawDatasetReader(MockedRawDatasetReader):
         assert len(list(set(selected_subjects))) == len(selected_subjects)
 
         # assert in 0, 1, 2...., num_observer -1
-        observer_idxs = range(super(CorruptSubjectRawDatasetReader, self).num_observers)
+        observer_idxs = list(range(super(CorruptSubjectRawDatasetReader, self).num_observers))
         for subject in selected_subjects:
             assert subject in observer_idxs
 

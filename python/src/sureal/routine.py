@@ -33,15 +33,9 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
     dataset = import_python_file(dataset_filepath)
     dataset_reader = dataset_reader_class(dataset, input_dict=dataset_reader_info_dict)
 
-    subjective_models = map(
-        lambda subjective_model_class: subjective_model_class(dataset_reader),
-        subjective_model_classes
-    )
+    subjective_models = [subjective_model_class(dataset_reader) for subjective_model_class in subjective_model_classes]
 
-    results = map(
-        lambda subjective_model: subjective_model.run_modeling(**kwargs),
-        subjective_models
-    )
+    results = [subjective_model.run_modeling(**kwargs) for subjective_model in subjective_models]
 
     if do_plot == 'all' or 'raw_scores' in do_plot:
         # ===== plot raw scores
@@ -68,7 +62,7 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
         for subjective_model, result in zip(subjective_models, results):
             if 'quality_scores' in result:
                 quality = result['quality_scores']
-                xs = range(len(quality))
+                xs = list(range(len(quality)))
 
                 # plt.plot(result['quality_scores'], label=subjective_model.TYPE)
 
@@ -113,7 +107,7 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
 
             if 'observer_bias' in result:
                 bias = result['observer_bias']
-                xs = range(len(bias))
+                xs = list(range(len(bias)))
 
                 if plot_type == 'bar':
                     ax_bias.bar(np.array(xs)+shift_count*bar_width, bias,
@@ -146,7 +140,7 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
 
             if 'observer_inconsistency' in result:
                 inconsty = result['observer_inconsistency']
-                xs = range(len(inconsty))
+                xs = list(range(len(inconsty)))
 
                 if plot_type == 'bar':
                     ax_inconsty.bar(np.array(xs)+shift_count*bar_width, inconsty,
@@ -176,7 +170,7 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
                 shift_count += 1
 
         if xs and my_xticks is None:
-            my_xticks = map(lambda x: "#{}".format(x+1), xs)
+            my_xticks = ["#{}".format(x+1) for x in xs]
             plt.xticks(np.array(xs) + 0.3, my_xticks, rotation=90)
         plt.tight_layout()
 
@@ -190,7 +184,7 @@ def run_subjective_models(dataset_filepath, subjective_model_classes, do_plot=No
         for subjective_model, result in zip(subjective_models, results):
             if 'content_ambiguity' in result:
                 ambgty = result['content_ambiguity']
-                xs = range(len(ambgty))
+                xs = list(range(len(ambgty)))
 
                 if plot_type == 'bar':
                     ax_ambgty.bar(np.array(xs)+shift_count*bar_width, ambgty,
